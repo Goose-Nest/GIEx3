@@ -60,9 +60,9 @@ const { existsSync, renameSync, readFileSync, writeFileSync } = require('fs');
 
 const selfContent = readFileSync(join(process.resourcesPath, 'build_info.json.js'), 'utf8');
 
-let i = setInterval(() => {
+if (global.__giex3Injected !== true) i = setInterval(() => {
   if (global.mainWindowId) {
-    log('wow!');
+    log('detected main window id');
     clearInterval(i);
     
     unstrictCSP();
@@ -71,7 +71,6 @@ let i = setInterval(() => {
     const autoStartPath = join(require.main.filename, '..', 'autoStart', 'index.js');
     const { update } = require(autoStartPath);
     
-    log('injected into autoStart');
     require.cache[autoStartPath].exports.update = (callback) => {
       log('autoStart inject');
       
@@ -82,18 +81,21 @@ let i = setInterval(() => {
       const jsBuildInfoPath = join(process.resourcesPath, 'build_info.json.js');
       
       if (existsSync(originalBuildInfoPath)) { // updated
-        log('updated, reinjecting');
+        log('updated, reinjecting...');
         
         renameSync(originalBuildInfoPath, backupBuildInfoPath);
         
         writeFileSync(jsBuildInfoPath, selfContent);
       }
       
-      
       return update(callback);
     };
+
+    log('injected into autoStart');
   }
 }, 10);
+
+global.__giex3Injected = true;
 
 log('export');
 
